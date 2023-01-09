@@ -2,7 +2,7 @@ import sqlite3
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
 
 _user = {}
-TOKEN = "5848862768:AAEF2p4rJVvewH0I5TTi8Mv815GXg0UJ6c8"
+TOKEN = "Ваш токен"
 
 
 def create_table():
