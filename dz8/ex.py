@@ -1,4 +1,88 @@
 import csv
+import logging
+
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, updater, ConversationHandler
+
+#  Запускаем логгирование
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
+TOKEN = '5848862768:AAEF2p4rJVvewH0I5TTi8Mv815GXg0UJ6c8'
+
+
+
+def run():
+    updater = Updater(TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
+
+    dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CommandHandler('all', open_file))
+    dispatcher.add_handler(CommandHandler('help', help_info))
+
+    add_user_handler = ConversationHandler(
+        entry_points=[CommandHandler('add', add_values)],
+        states={
+            1: [MessageHandler(Filters.text & ~Filters.command, set_first_name)],
+            2: [MessageHandler(Filters.text & ~Filters.command, set_last_name)],
+            3: [MessageHandler(Filters.text & ~Filters.command, set_phone)],
+            4: [MessageHandler(Filters.text & ~Filters.command, set_description)],
+        },
+        fallbacks=[CommandHandler('stop', stop_operation)]
+    )
+    dispatcher.add_handler(add_user_handler)
+
+    del_user_handler = ConversationHandler(
+        entry_points=[CommandHandler('del', del_user)],
+        states={
+            1: [MessageHandler(Filters.text & ~Filters.command, del_user_set_id)],
+        },
+        fallbacks=[CommandHandler('stop', stop_operation)]
+    )
+    dispatcher.add_handler(del_user_handler)
+
+    search_user_handler = ConversationHandler(
+        entry_points=[CommandHandler('search', search_user)],
+        states={
+            1: [MessageHandler(Filters.text & ~Filters.command, search_user_set_filter)],
+        },
+        fallbacks=[CommandHandler('stop', stop_operation)]
+    )
+    dispatcher.add_handler(search_user_handler)
+
+    updater.start_polling()
+    updater.idle()
+
+
+def start(update, context):
+    context.bot.send_message(update.effective_chat.id, "Привет! Добро пожаловать в телефонный справочник.")
+
+
+def all_users(update, context):
+    users = phonebook_model.get_all_users()
+    if len(users) == 0:
+        context.bot.send_message(update.effective_chat.id, "Список пуст")
+        return
+
+    result = users_to_str(users)
+    context.bot.send_message(update.effective_chat.id, result)
+
+
+def help_info(update, context):
+    result = "/all - выводит все контакты\n"
+    result += "/add - добавляет новый контакт\n"
+    result += "/del - удаляет контакт по id\n"
+    result += "/search - ищет контакт по фамилии\n"
+    result += "/stop - отменяет начатую операцию"
+    context.bot.send_message(update.effective_chat.id, result)
+
+
+def users_to_str(users: [{}]):
+    result = ""
+    for u in users:
+        result += f'{u["id"]}. {u["first_name"]} {u["last_name"]}: {u["phone"]} ({u["description"]})\n'
+    return result
+
 
 # Вывод открытого справочника
 def printer(book_list):
@@ -174,6 +258,8 @@ def show_menu() -> int:
 
 def execute():
     step(show_menu())
+
+
 
 execute()
 
