@@ -14,7 +14,7 @@ reply_keyboard = [['/play', '/rules'],
                   ['/exit', ]]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
-TOKEN = '5848862768:AAEF2p4rJVvewH0I5TTi8Mv815GXg0UJ6c8'
+TOKEN = 'TOKEN'
 
 def start(update, context):
     update.message.reply_text(
